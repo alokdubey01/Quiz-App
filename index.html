@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="This a 1st chellenge to complete 100 days project chellenge">
+    <!-- css -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <!-- js -->
+    <title>Codedamn - Quiz Project</title>
+</head>
+
+<body>
+    <header>
+        <div class="score">
+            <button onclick="HighScore()">View HighScore <i class="fas fa-hand-point-left fa-lg"></i></button>
+        </div>
+        <div class="timer">
+            <p>Time :</p>
+            <p id="time"></p>
+        </div>
+    </header>
+    <div class="container">
+        <!-- HighScore block -->
+        <div class="card_High" id="card_High">
+            <h1>High Scores</h1>
+            <ol type="1">
+                <li>
+                    <p>Alok Dubey</p>
+                </li>
+                <li>
+                    <p>Ayush Gupta</p>
+                </li>
+                <li>
+                    <p>Anuj Mishra</p>
+                </li>
+                <li>
+                    <p>Anushri Singh</p>
+                </li>
+            </ol>
+            <button onclick="Back()">Go Back</button>
+            <button onclick="Clear()">Clear HighScore</button>
+        </div>
+
+        <!-- welcome block -->
+        <div class="card" id="welcome">
+            <h1>Coding Quiz Challenge</h1>
+            <p>Try to anser the following code-related questions within the time limit.
+                Keep in mind that incorrect answer will penalize youe score/time by ten seconds !
+            </p>
+            <button onclick="Start()">Enter Your Name</button>
+        </div>
+
+        <!-- name block -->
+        <div class="card" id="name">
+            <h1>Enter Your Name Here !</h1>
+            <form action="" method="get">
+                <input type="text" name="name" id="name_field"><br>
+                <button onclick="Next()">Start Quiz</button>
+            </form>
+        </div>
+
+        <!-- question block -->
+        <div class="card" id="quiz">
+            <div class="quiz-container">
+                <div class="question-number">
+                    <h3>Question <span class="question-num-value"></span> of
+                        <span class="total-questions"></span>
+                    </h3>
+                </div>
+                <h1 class="question">
+                    Question will Goes here !
+                </h1>
+                <div class="options">
+                <button class="option1 option" onclick="check(this)"></button>
+                <button class="option2 option" onclick="check(this)"></button>
+                <button class="option3 option" onclick="check(this)"></button>
+                <button class="option4 option" onclick="check(this)"></button>
+            </div>
+            <div class="button btn">
+                <button type="button" onclick="next()" class="btn">Next</button>
+            </div>
+            <div class="answers-tracker">
+
+            </div>
+        </div>
+        <div class="quiz-over">
+            <div class="box">
+                <h1>You got <span class="correct-answers"></span> out of
+                    <span class="total-questions2"></span> answers correct.
+                </h1>
+                <button type="button" onclick="HighScore()">View HighScore</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+
+    <script>
+        const answersTrackerContainer = document.querySelector(".answers-tracker")
+        const options = document.querySelector(".options").children
+        const questionNumberSpan = document.querySelector(".question-num-value")
+        const question = document.querySelector(".question")
+        const totalQuestionsSpan = document.querySelector(".total-questions")
+        const correctAnswersSpan = document.querySelector(".correct-answers")
+        const totalQuestionsSpan2 = document.querySelector(".total-questions2")
+
+        let currentIndex;
+        let index = 0;
+        let answeredQuestions = []; // array of anwered question indexes
+        let score = 0;
+
+        const opt1 = document.querySelector(".option1")
+        const opt2 = document.querySelector(".option2")
+        const opt3 = document.querySelector(".option3")
+        const opt4 = document.querySelector(".option4")
+
+        const questions = [
+            {
+                questionText: "Commonly used data types DO NOT include:",
+                options: ["1. strings", "2. booleans", "3. alerts", "4. numbers"],
+                answer: "3. alerts",
+            },
+            {
+                questionText: "Arrays in JavaScript can be used to store ______.",
+                options: [
+                    "1. numbers and strings",
+                    "2. other arrays",
+                    "3. booleans",
+                    "4. all of the above",
+                ],
+                answer: "4. all of the above",
+            },
+            {
+                questionText:
+                    "String values must be enclosed within _____ when being assigned to variables.",
+                options: ["1. commas", "2. curly brackets", "3. quotes", "4. parentheses"],
+                answer: "3. quotes",
+            },
+            {
+                questionText:
+                    "A very useful tool used during development and debugging for printing content to the debugger is:",
+                options: [
+                    "1. JavaScript",
+                    "2. terminal/bash",
+                    "3. for loops",
+                    "4. console.log",
+                ],
+                answer: "4. console.log",
+            },
+            {
+                questionText:
+                    "Which of the following is a statement that can be used to terminate a loop, switch or label statement?",
+                options: ["1. break", "2. stop", "3. halt", "4. exit"],
+                answer: "1. break",
+            },
+        ];
+
+        totalQuestionsSpan.innerHTML = questions.length
+
+        function load() {
+            questionNumberSpan.innerHTML = index + 1
+            question.innerHTML = questions[currentIndex].questionText;
+            opt1.innerHTML = questions[currentIndex].options[0]
+            opt2.innerHTML = questions[currentIndex].options[1]
+            opt3.innerHTML = questions[currentIndex].options[2]
+            opt4.innerHTML = questions[currentIndex].options[3]
+            index++
+        }
+
+        //Check if selected answer is correct or wrong
+        function check(element) {
+            if (element.id == questions[currentIndex].answer) {
+                element.className = "correct"
+                updateAnswersTracker("correct")
+                score++
+            }
+            else {
+                element.className = "wrong"
+                updateAnswersTracker("wrong")
+            }
+            disableClick();
+        }
+
+        //Make sure the user selected an item before clicking on the Next button
+        function validate() {
+            if (!options[0].classList.contains("disabled")) {
+                alert("Please select an option")
+            }
+            else {
+                randomQuestion();
+                enableClick();
+            }
+        }
+
+        //Listener function for click event on Next button
+        function next() {
+            validate();
+        }
+
+        //Function to disable click for the options
+        function disableClick() {
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.add("disabled")
+
+                if (options[i].id == questions[currentIndex].answer) {
+                    options[i].classList.add('correct');
+                }
+            }
+        }
+
+        //Function to reanable click in the options
+        function enableClick() {
+            for (let i = 0; i < options.length; i++) {
+                options[i].classList.remove("disabled", "correct", "wrong")
+
+            }
+        }
+
+        //Function to select a random question
+        function randomQuestion() {
+            let randomNumber = Math.floor(Math.random() * questions.length);
+            if (index == questions.length) {
+                quizOver();
+            }
+            else {
+                if (answeredQuestions.length > 0) {
+                    if (answeredQuestions.includes(randomNumber)) {
+                        randomQuestion();
+                    }
+                    else {
+                        currentIndex = randomNumber;
+                        load();
+                    }
+                }
+                if (answeredQuestions.length == 0) {
+                    currentIndex = randomNumber
+                    load()
+                }
+                //add the question to list of anwered questions
+                answeredQuestions.push(randomNumber)
+            }
+        }
+
+        //Restart the quiz
+        window.onload = function () {
+            this.randomQuestion();
+            this.answersTracker();
+        }
+
+        //Set up answers tracker elements
+        function answersTracker() {
+            for (let i = 0; i < questions.length; i++) {
+                const div = document.createElement("div")
+                answersTrackerContainer.appendChild(div);
+            }
+        }
+
+        //Update the answers tracker elements
+        function updateAnswersTracker(newClass) {
+            answersTrackerContainer.children[index - 1].classList.add(newClass)
+        }
+
+        //Displays the quiz-over page if quiz is over
+        function quizOver() {
+            document.querySelector(".quiz-over").classList.add("show")
+            correctAnswersSpan.innerHTML = score;
+            totalQuestionsSpan2.innerHTML = questions.length
+        }
+
+        function tryAgain() {
+            window.location.reload();
+        }
+
+        function Start() {
+            document.getElementById("welcome").style.display = 'none';
+            document.getElementById("name").style.display = 'block';
+        }
+
+        function Next() {
+            document.getElementById("name").style.display = 'none';
+            document.getElementById("quiz").style.display = 'block';
+        }
+
+        function HighScore() {
+            document.getElementById("welcome").style.display = 'none';
+            document.getElementById("name").style.display = 'none';
+            document.getElementById("quiz").style.display = 'none';
+            document.getElementById("card_High").style.display = 'block';
+        }
+
+        function Back() {
+            document.getElementById("card_High").style.display = 'none';
+            document.getElementById("welcome").style.display = 'block';
+        }
+    </script>
+
+    <!-- <script>
+        let currentQuestion = 0;
+        let score = 0;
+
+
+       const questions = [
+            {
+                questionText: "Commonly used data types DO NOT include:",
+                options: ["1. strings", "2. booleans", "3. alerts", "4. numbers"],
+                answer: "3. alerts",
+            },
+            {
+                questionText: "Arrays in JavaScript can be used to store ______.",
+                options: [
+                    "1. numbers and strings",
+                    "2. other arrays",
+                    "3. booleans",
+                    "4. all of the above",
+                ],
+                answer: "4. all of the above",
+            },
+            {
+                questionText:
+                    "String values must be enclosed within _____ when being assigned to variables.",
+                options: ["1. commas", "2. curly brackets", "3. quotes", "4. parentheses"],
+                answer: "3. quotes",
+            },
+            {
+                questionText:
+                    "A very useful tool used during development and debugging for printing content to the debugger is:",
+                options: [
+                    "1. JavaScript",
+                    "2. terminal/bash",
+                    "3. for loops",
+                    "4. console.log",
+                ],
+                answer: "4. console.log",
+            },
+            {
+                questionText:
+                    "Which of the following is a statement that can be used to terminate a loop, switch or label statement?",
+                options: ["1. break", "2. stop", "3. halt", "4. exit"],
+                answer: "1. break",
+            },
+        ];
+
+        const op1 = document.getElementById("op1");
+        const op2 = document.getElementById("op2");
+        const op3 = document.getElementById("op3");
+        const op4 = document.getElementById("op4");
+        const userScore = document.getElementById("user-score");
+        const totalScore = document.getElementById("total-score");
+        const questionText = document.getElementById("question")
+
+
+        function beginQuiz() {
+            currentQuestion = 0;
+            totalScore.innerHTML = questions.length;
+            questionText.innerHTML = questions[currentQuestion].questionText;
+            op1.innerHTML = questions[currentQuestion].options[0];
+            op1.onclick = () => {
+                if (questions[currentQuestion].answers == questions[currentQuestion].options[0]) {
+                    op1.style.backgroundColor = "blue";
+                    if (score < 3) {
+                        score++;
+                    }
+                }
+                userScore.innerHTML = score;
+                if (currentQuestion < 2) {
+                    next();
+                }
+            }
+
+            op2.innerHTML = questions[currentQuestion].options[1];
+            op2.onclick = () => {
+                if (questions[currentQuestion].answers[1].answer) {
+                    if (score < 3) {
+                        score++;
+                    }
+                }
+                userScore.innerHTML = score;
+                if (currentQuestion < 2) {
+                    next();
+                }
+            }
+            op3.innerHTML = questions[currentQuestion].options[2];
+            op3.onclick = () => {
+                if (questions[currentQuestion].answer == questions[currentQuestion].options) {
+                    op1.style.backgroundColor = "green"
+                    if (score < 3) {
+                        score++;
+                    }
+                }
+                userScore.innerHTML = score;
+                if (currentQuestion < 2) {
+                    next();
+                }
+            }
+
+            op4.innerHTML = questions[currentQuestion].options[3];
+            op4.onclick = () => {
+                if (questions[currentQuestion].answers[1].answer) {
+                    if (score < 3) {
+                        score++;
+                    }
+                }
+                userScore.innerHTML = score;
+                if (currentQuestion < 2) {
+                    next();
+                }
+            }
+        }
+
+        beginQuiz();
+
+         function next() {
+            currentQuestion++;
+            if(currentQuestion >= 4) {
+                nextBtn.classList.add("hide");
+                prevBtn.classList.remove("hide");
+            }
+            questionText.innerHTML = questions[currentQuestion].questionText;
+            op1.innerHTML = questions[currentQuestion].options[0];
+            op1.onclick = () => {
+                if(questions[currentQuestion].answers[0].answer) {
+                    if(score < 3) {
+                        score++;
+                    }
+                }
+                userScore.innerHTML = score;
+                if(currentQuestion < 2) {
+                    next();
+                }
+            }
+          
+            op2.innerHTML = questions[currentQuestion].answers[1].option;
+            op2.onclick = () => {
+                if(questions[currentQuestion].answers[1].answer) {
+                    if(score < 3) {
+                        score++;
+                    }
+                }
+                userScore.innerHTML = score;
+                if(currentQuestion < 2) {
+                    next();
+                }
+            }
+          
+            prevBtn.classList.remove("hide");
+         }
+    </script> -->
+
+    <!-- javascript -->
+    <!-- <script>
+      /*  const questions = [
+            {
+                questionText: "Commonly used data types DO NOT include:",
+                options: ["1. strings", "2. booleans", "3. alerts", "4. numbers"],
+                answer: "3. alerts",
+            },
+            {
+                questionText: "Arrays in JavaScript can be used to store ______.",
+                options: [
+                    "1. numbers and strings",
+                    "2. other arrays",
+                    "3. booleans",
+                    "4. all of the above",
+                ],
+                answer: "4. all of the above",
+            },
+            {
+                questionText:
+                    "String values must be enclosed within _____ when being assigned to variables.",
+                options: ["1. commas", "2. curly brackets", "3. quotes", "4. parentheses"],
+                answer: "3. quotes",
+            },
+            {
+                questionText:
+                    "A very useful tool used during development and debugging for printing content to the debugger is:",
+                options: [
+                    "1. JavaScript",
+                    "2. terminal/bash",
+                    "3. for loops",
+                    "4. console.log",
+                ],
+                answer: "4. console.log",
+            },
+            {
+                questionText:
+                    "Which of the following is a statement that can be used to terminate a loop, switch or label statement?",
+                options: ["1. break", "2. stop", "3. halt", "4. exit"],
+                answer: "1. break",
+            },
+        ];
+
+
+        var clock = document.getElementById("time");
+        clock.innerHTML = "3:00";
+
+
+        var start = true;
+        function iterate(id) {
+            const question = document.getElementById("question");
+            question.innerText = questions[id].questionText;
+
+            const op1 = document.getElementById("op1");
+            const op2 = document.getElementById("op2");
+            const op3 = document.getElementById("op3");
+            const op4 = document.getElementById("op4");
+
+            const result1 = op1.innerText = questions[id].options[0];
+            const result2 = op2.innerText = questions[id].options[1];
+            const result3 = op3.innerText = questions[id].options[2];
+            const result4 = op4.innerText = questions[id].options[3];
+
+            const correct = questions[id].answer;
+
+            var score = "0";
+
+            // Show selection for op1
+            op1.addEventListener("click", () => {
+                if (result1 == correct) {
+                    op1.style.backgroundColor = "green";;
+                    score++;
+                    document.getElementById("result").innerText = score;
+                }
+                else {
+                    op1.style.backgroundColor = "red";
+                }
+            })
+
+            // Show selection for op2
+            op2.addEventListener("click", () => {
+                if (result2 == correct) {
+                    op2.style.backgroundColor = "green";
+                    score++;
+                    document.getElementById("result").innerText = score;
+                }
+                else {
+                    op2.style.backgroundColor = "red";
+                }
+            })
+
+            // Show selection for op3
+            op3.addEventListener("click", () => {
+                if (result3 == correct) {
+                    op3.style.backgroundColor = "green";
+                    score++;
+                    document.getElementById("result").innerText = score;
+                }
+                else {
+                    op3.style.backgroundColor = "red";
+                }
+            })
+
+            // Show selection for op4
+            op4.addEventListener("click", () => {
+                if (result4 == correct) {
+                    op4.style.backgroundColor = "green";
+                    score++;
+                    document.getElementById("result").innerText = score;
+                }
+                else {
+                    op4.style.backgroundColor = "red";
+                }
+            })
+
+            // Grabbing the evaluate button
+            const evaluate = document.getElementsByClassName("evaluate");
+
+            // Evaluate method
+            evaluate[0].addEventListener("click", () => {
+                if (selected == questions[0].answer) {
+                    op3.style.backgroundColor = "green";
+                } else {
+                    result[0].innerHTML = "False";
+                    result[0].style.color = "red";
+                }
+            })
+        }
+
+        if (start) {
+            iterate("0");
+        }
+
+        const next = document.getElementsByClassName("next")[0];
+        var id = 0;
+
+        next.addEventListener("click", () => {
+            start = false;
+            if (id < 4) {
+                id++;
+                iterate(id);
+                console.log(id);
+            }
+        })
+
+        /*  function Start() {
+              document.getElementById("welcome").style.display = 'none';
+              document.getElementById("name").style.display = 'block';
+          }
+  
+          function Next() {
+              document.getElementById("name").style.display = 'none';
+              document.getElementById("quiz").style.display = 'block';
+          }
+  
+          function HighScore() {
+              document.getElementById("welcome").style.display = 'none';
+              document.getElementById("name").style.display = 'none';
+              document.getElementById("quiz").style.display = 'none';
+              document.getElementById("card_High").style.display = 'block';
+          }
+  
+          function Back() {
+              document.getElementById("card_High").style.display = 'none';
+              document.getElementById("welcome").style.display = 'block';
+          }
+           } */
+
+    </script> -->
+</body>
+
+</html>
